@@ -1,0 +1,2 @@
+# DengAI-Predicting-Disease-Spread
+Using environmental data collected by various U.S. Federal Government agencies—from the Centers for Disease Control and Prevention to the National Oceanic and Atmospheric Administration in the U.S. Department of Commerce—I have to predict the number of dengue fever cases reported each week in San Juan, Puerto Rico and Iquitos, Peru. The goal of the competition is to develop a prediction model that would be able to anticipate the cases of dengue in every country depending on a set of climate variables mentioned above.
