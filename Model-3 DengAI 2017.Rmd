@@ -1,0 +1,153 @@
+---
+title: "Model-3 DengAI 2017"
+author: "Seema Rani Kanuri"
+date: "May 7, 2017"
+output: html_document
+---
+
+
+#Model : 3
+
+## Introduction : DengAI 2017
+Our goal is to predict the total_cases label for each (city, year, weekofyear) in the test set. There are two cities, San Juan and Iquitos, with test data for each city spanning 5 and 3 years respectively. You will make one submission that contains predictions for both cities. The data for each city have been concatenated along with a city column indicating the source: sj for San Juan and iq for Iquitos. The test set is a pure future hold-out, meaning the test data are sequential and non-overlapping with any of the training data. Throughout, missing values have been filled as NaNs.
+
+### Goal:
+The Goal is to DengAI predictions for  San Juan and Iquitos city.The goal of the competition is to develop a prediction model that would be able to anticipate the cases of dengue in every country depending on a set of climate variables mentioned above.
+
+
+
+```{r}
+dengue_features_train <- read.csv("F:/OneDrive - Texas Tech University/MastersDocuments/DS-Predictive Analytics/DengAI/DataSet/dengue_features_train.csv")
+View(dengue_features_train)
+
+dengue_features_test <- read.csv("F:/OneDrive - Texas Tech University/MastersDocuments/DS-Predictive Analytics/DengAI/DataSet/dengue_features_test.csv")
+View(dengue_features_test)
+
+dengue_labels_train <- read.csv("F:/OneDrive - Texas Tech University/MastersDocuments/DS-Predictive Analytics/DengAI/DataSet/dengue_labels_train.csv")
+View(dengue_labels_train)
+```
+
+
+## Introduction to the Data
+You are provided the following set of information on a (year, weekofyear) timescale: (Where appropriate, units are provided as a _unit suffix on the feature name.)t.
+
+
+
+### File descriptions:
+This dataset has two cities in it: San Juan, Puerto Rico (right) and Iquitos, Peru (left). Since we hypothesize that the spread of dengue may follow different patterns between the two, we will divide the dataset, train seperate models for each city, and then join our predictions before making our final submission.
+
+
+#### Next, let's check to see if we are missing any values in this dataset:
+
+The dataset contains information on 1456 weeks for the 2 cities across 24 features.
+```{r}
+#is.na(dengue_features_train$ndvi_ne)
+colSums(is.na(dengue_features_train))
+```
+
+#### Replacing the NaN Vaues with the mean in the train data
+```{r}
+for(i in 1:ncol(dengue_features_train)){
+  dengue_features_train[is.na(dengue_features_train[,i]), i] <- mean(dengue_features_train[,i], na.rm = TRUE)
+}
+
+```
+
+#### Replacing the NaN Vaues with the mean in the train data
+```{r}
+colSums(is.na(dengue_features_test))
+for(i in 1:ncol(dengue_features_test)){
+  dengue_features_test[is.na(dengue_features_test[,i]), i] <- mean(dengue_features_test[,i], na.rm = TRUE)
+}
+
+```
+
+#### Merging the train and labels data set
+```{r}
+total <- merge(dengue_features_train,dengue_labels_train,by=c("city","year","weekofyear"))
+
+```
+
+### Baseline mode
+
+## Setting Up and Connecting to a H2O Cluster
+
+Let’s first load some packages
+```{r}
+library(h2o)
+localH2O = h2o.init()
+set.seed(2)
+train_h2o <- as.h2o(total)
+test_h2o  <- as.h2o(dengue_features_test)
+timer <- proc.time()
+
+```
+
+
+## Initialization
+
+First, we will create three splits for train/test/valid independent data sets.We will train a data set on one set and use the others to test the validity of model by ensuring that it can predict accurately on data the model has not been shown.
+
+## Run our predictive model, Training a h2o Deep Learning Model
+## Deep learning algorithm in h2o for prediction
+```{r}
+
+system.time(
+  dlearning.model <- h2o.deeplearning(                                     # data in H2O format
+    x=2:24, 
+    y=25, 
+    activation = "RectifierWithDropout",  
+    #input_dropout_ratio = 0.2, # % of inputs dropout
+   # hidden_dropout_ratios = c(0.5,0.5,0.5), # % for nodes dropout
+    training_frame=train_h2o, 
+    nfolds=10,
+    #validation_frame=valid_index.hex,
+    epochs=50, 
+    hidden=c(18,18)# more hidden layers -> more complex interactions
+                        # helps stability for Rectifier
+  )
+)
+```
+
+
+##  View information about the model.
+Keys to look for are validation performance and variable importance
+
+
+```{r}
+h2o.performance(dlearning.model)
+
+```
+
+## Using the model for prediction
+
+## Generate the submission
+```{r}
+pred_value <- predict(dlearning.model, test_h2o)
+pred_value_df= as.data.frame(pred_value)
+```
+
+```{r}
+write.csv(pred_value_df,"D://Model_3_Forecasted_Values.csv")
+```
+
+
+### All done, shutdown H2O    
+
+```{r}
+h2o.shutdown(prompt=FALSE)
+```
+
+
+## Resources
+
+???	http://r-statistics.co/Poisson-and-Negative-Binomial-Regression-With-R.html
+???	https://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/
+???	https://www.r-bloggers.com/search/time%20series/
+???	https://rpubs.com/kaz_yos/pscl-2
+???	https://www.analyticsvidhya.com/blog/2016/02/time-series-forecasting-codes-python/
+???	https://www.digitalocean.com/community/tutorials/a-guide-to-time-series-visualization-with-python-3
+???	https://www.digitalocean.com/community/tutorials/a-guide-to-time-series-forecasting-with-arima-in-python-3
+???	http://www.blackarbs.com/blog/time-series-analysis-in-python-linear-models-to-garch/11/1/2016
+???	
+
