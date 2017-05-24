@@ -4,7 +4,7 @@
 
 3.	However R seems to be an easy choice where I was able to do the analysis in a quick time. I have used 2 models:
 
-4 . This folder contains 4 scripts of four different  Models .
+4 . This folder contains 3 scripts of four different  Models .
 	Model-1 Generalized Linear Models( best accuracy model) score 25.6010
 	Model-2 Negative binomial regression Score 25.9976
 	Model-3 Neural Networks & Forecasting 26.2933
